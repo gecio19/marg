@@ -1,0 +1,621 @@
+// ==UserScript==
+// @name         Unikaty 2/2
+// @version      0.1
+// @description  try to take over the world!
+// @author       You
+// @match        http://*.margonem.pl/*
+// @match        https://*.margonem.pl/*
+// @grant        none
+// ==/UserScript==
+
+
+let ilosc = 19;
+
+let cena = "1.4m";
+
+
+
+
+
+function refresh()
+{
+
+
+
+document.location.reload(); // refresg page
+
+
+
+
+}
+
+
+
+function wypadek()
+{
+try{
+
+_g('talk&id=60088&c=20.109990');
+}
+finally{
+
+}
+
+
+}
+
+
+
+
+
+
+
+
+function getElementByXpath(path) {
+  return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+}
+
+
+
+
+
+
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+
+
+
+    var gotItemInG = function(item){
+
+for(let i in g.item){
+ let it = g.item[i]
+  if(it.loc=="g"&&it.name==item){
+    return true
+}
+
+}
+return false;
+}
+
+
+
+ class AStar
+{
+    constructor(
+      collisionsString,
+      width,
+      height,
+      start,
+      end,
+      additionalCollisions
+    ) {
+      this.width = width;
+      this.height = height;
+      this.collisions = this.parseCollisions(collisionsString, width, height);
+      this.additionalCollisions = additionalCollisions || {};
+      this.start = this.collisions[start.x][start.y];
+      this.end = this.collisions[end.x][end.y];
+      this.start.beginning = true;
+      this.start.g = 0;
+      this.start.f = heuristic(this.start, this.end);
+      this.end.target = true;
+      this.end.g = 0;
+      this.addNeighbours();
+      this.openSet = [];
+      this.closedSet = [];
+      this.openSet.push(this.start);
+    }
+
+    parseCollisions(collisionsString, width, height) {
+      const collisions = new Array(width);
+      for (let w = 0; w < width; w++) {
+        collisions[w] = new Array(height);
+        for (let h = 0; h < height; h++) {
+          collisions[w][h] = new Point(
+            w,
+            h,
+            collisionsString.charAt(w + h * width) === "1"
+          );
+        }
+      }
+      return collisions;
+    }
+
+    addNeighbours() {
+      for (let i = 0; i < this.width; i++) {
+        for (let j = 0; j < this.height; j++) {
+          this.addPointNeighbours(this.collisions[i][j]);
+        }
+      }
+    }
+
+    addPointNeighbours(point) {
+      const x = point.x,
+        y = point.y;
+      const neighbours = [];
+      if (x > 0) neighbours.push(this.collisions[x - 1][y]);
+      if (y > 0) neighbours.push(this.collisions[x][y - 1]);
+      if (x < this.width - 1) neighbours.push(this.collisions[x + 1][y]);
+      if (y < this.height - 1) neighbours.push(this.collisions[x][y + 1]);
+      point.neighbours = neighbours;
+    }
+
+    anotherFindPath() {
+      while (this.openSet.length > 0) {
+        let currentIndex = this.getLowestF();
+        let current = this.openSet[currentIndex];
+        if (current === this.end) return this.reconstructPath();
+        else {
+          this.openSet.splice(currentIndex, 1);
+          this.closedSet.push(current);
+          for (const neighbour of current.neighbours) {
+            if (this.closedSet.includes(neighbour)) continue;
+            else {
+              const tentative_score = current.g + 1;
+              let isBetter = false;
+              if (
+                this.end == this.collisions[neighbour.x][neighbour.y] ||
+                (!this.openSet.includes(neighbour) &&
+                  !neighbour.collision &&
+                  !this.additionalCollisions[neighbour.x + 256 * neighbour.y])
+              ) {
+                this.openSet.push(neighbour);
+                neighbour.h = heuristic(neighbour, this.end);
+                isBetter = true;
+              } else if (
+                tentative_score < neighbour.g &&
+                !neighbour.collision
+              ) {
+                isBetter = true;
+              }
+              if (isBetter) {
+                neighbour.previous = current;
+                neighbour.g = tentative_score;
+                neighbour.f = neighbour.g + neighbour.h;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    getLowestF() {
+      let lowestFIndex = 0;
+      for (let i = 0; i < this.openSet.length; i++) {
+        if (this.openSet[i].f < this.openSet[lowestFIndex].f) lowestFIndex = i;
+      }
+      return lowestFIndex;
+    }
+
+    reconstructPath() {
+      const path = [];
+      let currentNode = this.end;
+      while (currentNode !== this.start) {
+        path.push(currentNode);
+        currentNode = currentNode.previous;
+      }
+      return path;
+    }
+}
+
+
+
+                          /// document.getElementById("torba1").click()
+
+                                         //var itemik = ("item"+g.item[i].id);
+
+                                         //document.getElementById(item997816039).click()
+                                        ///document.getElementById(itemik).click()    To do sell
+
+
+class Point {
+    constructor(x, y, collision) {
+      this.x = x;
+      this.y = y;
+      this.collision = collision;
+      this.g = 10000000;
+      this.f = 10000000;
+      this.neighbours = [];
+      this.beginning = false;
+      this.target = false;
+      this.previous = undefined;
+    }
+  }
+
+function heuristic(p1, p2) {
+    return Math.abs(p1.x - p2.x) + Math.abs(p1.y - p2.y);
+  }
+
+
+
+
+  function a_getWay(x, y) {
+    return new AStar(
+      map.col,
+      map.x,
+      map.y, {
+        x: hero.x,
+        y: hero.y
+      }, {
+        x: x,
+        y: y
+      },
+      g.npccol
+    ).anotherFindPath();
+  }
+
+
+function a_goTo(x, y) {
+    let _road_ = a_getWay(x, y);
+    if (!Array.isArray(_road_)) return;
+    window.road = _road_;
+  }
+
+
+
+
+
+
+
+
+// _g('talk&id=58930')
+// newMail()
+// DO = document.getElementById("mailto");
+// DO.value = "cos"
+// gold.value = "100"
+// hideMails()
+
+
+
+
+
+
+function check_U()
+{
+     let tablicka = new Array();
+
+      for (var i in g.item) {
+
+           if (g.item[i].itemTypeName == 'unique')
+
+           {
+               tablicka.push(g.item[i].name);
+           }
+
+      }
+
+return tablicka.length;
+}
+
+
+
+
+
+
+
+
+
+
+
+function check_Uni()
+{
+     let tablicka = new Array();
+
+      for (var i in g.item) {
+
+           if (g.item[i].itemTypeName == 'unique')
+
+           {
+               tablicka.push(g.item[i].name);
+           }
+          return tablica.length
+      }
+
+          if(tablicka.length > ilosc)   //// ilośc unikatów
+          {
+
+
+            a_goTo(77,26);
+
+
+
+          }
+      }
+
+
+
+
+
+function check_Uni2()
+{
+     let tablicka = new Array();
+
+      for (var i in g.item) {
+
+           if (g.item[i].itemTypeName == 'unique')
+
+           {
+               tablicka.push(g.item[i].name);          }
+      }
+
+          if(tablicka.length > ilosc)   //// ilośc unikatów
+          {
+
+             if(Math.abs(hero.x-g.npc[60088].x)<=1&&Math.abs(hero.y-g.npc[60088].y)<=1  && document.getElementsByClassName("auction-title").length == 0)
+              {
+                   _g('talk&id=60088');
+                  document.querySelector("#replies > li:nth-child(1)").click();
+
+              }
+
+
+              ///
+             else if(document.getElementsByClassName("auction-title").length == 1)
+             {
+
+                 for (var d in g.item) {
+
+           if (g.item[d].itemTypeName == 'unique')
+           {
+
+
+
+             var as = document.getElementById("item"+g.item[d].id);
+               if(as != null){
+               as.click();
+
+               }
+               else
+               {
+
+               }
+
+
+
+
+
+
+
+
+
+
+
+               var c;
+              c = getElementByXpath("/html/body/div[18]/div[59]/div/div[4]/div[1]");
+
+
+                 c.click();
+
+
+
+                sleep(200);
+
+
+
+
+
+           }
+
+
+
+      } // koniec fora
+
+
+
+
+
+
+
+
+             }  ///
+              else{ a_goTo(20,10);}
+
+
+
+
+
+
+
+
+
+          }else{
+
+
+
+
+
+          }
+
+
+
+
+
+
+
+
+
+      }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+var work = function(){
+    if(gotItemInG(window.nazwa)){
+
+
+    }else{ }  // Tu start
+
+
+          switch(map.id){
+
+
+
+              case 2110:
+
+setInterval(wypadek, 5000);
+
+
+if( check_U() >= ilosc)
+{
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+var Ah_tiitle;
+    Ah_tiitle = document.getElementsByClassName("auction-title").length;
+
+
+
+if(Ah_tiitle == 0)   /// przed wejsciem w rozmowe
+{
+        if(Math.abs(hero.x-g.npc[60088].x)<=1&&Math.abs(hero.y-g.npc[60088].y)<=1 && Ah_tiitle ==0)
+        {
+             _g('talk&id=60088');
+            var talk = document.querySelector("#replies > li:nth-child(1)")
+            try{
+            talk.click();
+            }
+            finally{}
+
+
+
+        }else{a_goTo(20,10); }
+
+
+
+
+
+
+
+}
+                          else if(Ah_tiitle == 1)
+                                                {
+
+                                                    ///////////////////////////////////////////////////////////////////////////////////////////
+
+            for (var d in g.item) {
+
+           if (g.item[d].itemTypeName == 'unique' && g.item[d].tip.indexOf("Związany z właścicielem na stałe") == -1 && g.item[d].tip.indexOf("Związany z właścicielem") == -1)
+           {
+
+
+               console.log(g.item[d].name);
+
+
+
+             var as = document.getElementById("item"+g.item[d].id);
+               if(as != null){
+               as.click();
+
+               }
+               else
+               {
+
+               }
+
+
+               var  r;
+             r = document.getElementsByClassName("si-input")[7].children[0].value = cena;
+
+
+
+
+
+               var c;
+
+               c = document.getElementsByClassName("SI-button small,green")
+
+                c[0].click()
+
+
+                sleep(200);
+
+
+
+
+
+           }
+
+
+
+      }
+
+
+
+
+setInterval(refresh, 10000);
+
+
+
+
+
+                                                /////////////////////////////////////////////////////////////////////////////////////////////////
+                                                   }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+}else{a_goTo(20,5)}
+                  break;
+
+
+
+
+
+          }
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+setInterval(work, 500);
+
+
+
+
+
+
+
